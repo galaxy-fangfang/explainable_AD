@@ -50,14 +50,16 @@ def kendall_tau(rhf_scores, score_per_tree, weighted=False):
     tau = (tau + 1) / 2.
     return tau
 
-def rbo_tau(rhf_scores, score_per_tree, p=1.0, sample_size=None, weight_rank=True):
+def rbo_tau(rhf_scores, score_per_tree, p=1.0, sample_size=None, weight_rank=False):
     # compute rbo for best tree
     rhf_indices = np.argsort(-rhf_scores)
     rhf_ranking = np.argsort(rhf_indices)
 
     per_tree_ranking = np.argsort(np.argsort(-score_per_tree))
     if sample_size is None:
-        per_tree_rbo = rbo.RankingSimilarity(rhf_ranking, per_tree_ranking).rbo(p=p, weight_rank=weight_rank)
+        # import ipdb
+        # ipdb.set_trace()
+        per_tree_rbo = rbo.RankingSimilarity(np.arange(len(rhf_scores)), per_tree_ranking[rhf_indices]).rbo(p=p, weight_rank=weight_rank)
     else:
         rhf_indices_top = rhf_indices[:sample_size]
         rhf_ranking_top = rhf_ranking[rhf_indices_top]
@@ -130,7 +132,7 @@ def compute_measure(rhf_scores, score_per_tree_list, select_method=['weighted_ke
             elif method == 'weighted_kendall':
                 measure_per_tree, _ = stats.weightedtau(rhf_scores, score_per_tree, rank=None)
             elif method == 'rbo':
-                measure_per_tree = rbo_tau(rhf_scores, score_per_tree, weight_rank=False)
+                measure_per_tree = rbo_tau(rhf_scores, score_per_tree, p=1.0, weight_rank=False)
             elif method == 'weighted_rbo':
                 measure_per_tree = rbo_tau(rhf_scores, score_per_tree, weight_rank=True)
             elif method == 'rbo_10':
@@ -149,3 +151,6 @@ def compute_measure(rhf_scores, score_per_tree_list, select_method=['weighted_ke
             # measures[i][tree_id] = measure_per_tree
             measures[method][tree_id] = measure_per_tree
     return measures
+
+def spearmanr(rhf_scores, score_per_tree):
+    return stats.spearmanr(rhf_scores, score_per_tree)

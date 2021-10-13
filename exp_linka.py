@@ -94,38 +94,41 @@ def run(datasets):
                   adjusted_mutual_info_score(labels, labels_pred))
 
             select_method = ['rbo']#['kendall', 'weighted_kendall', 'rbo', 'weighted_rbo', 'Spearmanr']
-            measures = compute_measure(rhf_scores, scores_list, select_method=select_method)
+            # measure = compute_measure(rhf_scores, scores_list[indexes], select_method=select_method)
 
-            for method, measure in measures.items():
-                ap_iter = 0
-                score_clusters = np.zeros(len(y))
-                score_average = np.zeros(len(y))
-                for cluster in range(num_cluster):
-                    indexes, = np.where(labels_pred == cluster + 1)
+            # for method, measure in measures.items():
+            ap_iter = 0
 
-                    measure_cluster = measure[indexes]
-                    measure_sorted_index = np.argsort(-measure_cluster)
+            score_clusters = np.zeros(len(y))
+            score_average = np.zeros(len(y))
+            for cluster in range(num_cluster):
 
-                    # import ipdb
-                    # ipdb.set_trace()
+                indexes, = np.where(labels_pred == cluster + 1)
+
+                measure_cluster = compute_measure(np.mean(scores_list[indexes], axis=0), scores_list[indexes], select_method=select_method)
+                for method, measure in measure_cluster.items():
+
+                    measure_sorted_index = np.argsort(-measure)
+
+
 
                     score_sorted_current = scores_list[measure_sorted_index[0]]
 
                     score_clusters += score_sorted_current * len(indexes)
                     score_average += score_sorted_current
 
-                score_clusters /= len(labels_pred)
-                score_average /= num_cluster
-                ap_clusters_d = average_precision_score(y, score_clusters)
-                ap_average_d = average_precision_score(y, score_average)
-                if method in cluster_ap.keys():
-                    cluster_ap[method].append(ap_clusters_d)
-                else:
-                    cluster_ap[method] = [ap_clusters_d]
-                if method in average_ap.keys():
-                    average_ap[method].append(ap_average_d)
-                else:
-                    average_ap[method] = [ap_average_d]
+            score_clusters /= len(labels_pred)
+            score_average /= num_cluster
+            ap_clusters_d = average_precision_score(y, score_clusters)
+            ap_average_d = average_precision_score(y, score_average)
+            if method in cluster_ap.keys():
+                cluster_ap[method].append(ap_clusters_d)
+            else:
+                cluster_ap[method] = [ap_clusters_d]
+            if method in average_ap.keys():
+                average_ap[method].append(ap_average_d)
+            else:
+                average_ap[method] = [ap_average_d]
                 # print(cluster_ap, average_ap)
 
         result.extend([df.shape[0], sample_size, ap.mean()])
@@ -159,9 +162,9 @@ def run(datasets):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datasets', required=True, nargs='+')
-    args = parser.parse_args()
-    datasets = args.datasets
+    # parser.add_argument('--datasets', required=True, nargs='+')
+    # args = parser.parse_args()
+    # datasets = args.datasets
     datasets = os.listdir('./datasets/klf')
     run(datasets)
 
