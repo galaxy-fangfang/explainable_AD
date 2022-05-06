@@ -14,7 +14,6 @@ from sklearn import tree
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import IsolationForest
 import seaborn as sns
-from reg_tree.regressor import *
 from easydict import EasyDict
 from mpl_toolkits.mplot3d import Axes3D
 import math
